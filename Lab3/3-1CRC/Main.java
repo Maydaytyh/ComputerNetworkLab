@@ -28,15 +28,19 @@ public class Main {
 		System.out.println("CRC生成多项式对应的二进制比特串:"+genXString);
 		System.out.println();
 		CRC_CCITT CRC_Test=new CRC_CCITT();
-		String CRC_Code=CRC_CCITT.getCRC16CCITT(infoString1, 0x1021, 0x0000);
-		System.out.println("计算得到的CRC校验码:"+CRC_Code);
+		String CRC_Code1=CRC_CCITT.getCRC16CCITT(infoString1, 0x1021, 0x0000);
+		System.out.println("计算得到的CRC校验码:"+CRC_Code1);
 		
-		System.out.println("带校验和的发送帧"+infoString1+CRC_Code);
+		System.out.println("带校验和的发送帧"+infoString1+CRC_Code1);
 		System.out.println();
-		String getCrcCode=CRC_CCITT.getCRC16CCITT(infoString1+CRC_Code, 0x1021, 0x0000);
+//		String getCrcCode=CRC_CCITT.getCRC16CCITT(infoString1+CRC_Code, 0x1021, 0x0000);
+		String CRC_Code2=CRC_CCITT.getCRC16CCITT(infoString2, 0x1021, 0x0000);
 		System.out.println("接收到的数据信息二进制比特串:"+infoString2);
-		System.out.print("接受码校验余数为："+getCrcCode);
-		if(Integer.valueOf(getCrcCode)==0) System.out.print("(无错)");
+		System.out.println("计算得到的CRC校验码"+CRC_Code2);
+		String CheckString=infoString1+CRC_Code1;
+		String Remainder=CRC_CCITT.getCRC16CCITT(CheckString, 0x1021, 0x0000);
+		System.out.print("接受码校验余数为："+Remainder);
+		if(Integer.valueOf(Remainder)==0) System.out.print("(无错)");
 		else System.out.print("(错误)");
 	}
 }
