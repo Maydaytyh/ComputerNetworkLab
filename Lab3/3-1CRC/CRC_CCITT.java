@@ -1,67 +1,46 @@
 package network.chapter3.lab1;
 
+import java.io.*;
+import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.util.Arrays;
-import java.math.*;
+import java.util.Properties;
+import network.chapter3.lab1.*;
 
-public class CRC_CCITT{
+public class Main {
+	static String configPath = "E:\\GoToCode\\Java\\WorkSpace\\ComputerNetworkLab3\\src\\network\\chapter3\\lab1\\config_lab1.properties";
+	static String infoString1 = "";
+	static String infoString2 = "";
+	static String genXString = "";
 
-	public static String getCRC16CCITT(String sendInfo, int polynomial, int crc) {
-		Long sendLong=Long.parseLong(sendInfo, 2);
-		String inputstr=Long.toHexString(sendLong);
-		int strLen = inputstr.length();
-		int[] intArray;
-		if (strLen % 2 != 0) {
-			inputstr = inputstr.substring(0, strLen - 1) + "0" + inputstr.substring(strLen - 1, strLen);
-			strLen++;
+	public static void main(String[] args) {
+		Properties pps = new Properties();
+		try {
+			InputStream in = new BufferedInputStream(new FileInputStream(configPath));
+			pps.load(in);
+			infoString1 = pps.getProperty("InfoString1");
+			infoString2 = pps.getProperty("InfoString2");
+			genXString = pps.getProperty("GenXString");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		intArray = new int[strLen / 2];
-		int ctr = 0;
-		for (int n = 0; n < strLen; n += 2) {
-			intArray[ctr] = Integer.valueOf(inputstr.substring(n, n + 2), 16);
-			ctr++;
-		}
-		for (int b : intArray) {
-			for (int i = 0; i < 8; i++) {
-				boolean bit = ((b >> (7 - i) & 1) == 1);
-				boolean c15 = ((crc >> 15 & 1) == 1);
-				crc <<= 1;
-				if (c15 ^ bit)
-					crc ^= polynomial;
-			}
-		}
-		crc &= 0xFFFF;
-		String crcStr = Integer.toHexString(crc).toUpperCase();
-		int n = crcStr.length();
-		for (int i = 0; i < (4 - n); i++) {
-			crcStr = "0" + crcStr;
-		}
-		byte[] bytes=parseHexStr2Byte(crcStr);
-		crcStr=byteArrToBinStr(bytes);
-		return crcStr;
+		System.out.println("待发送的数据信息二进制比特串:"+infoString1);
+		System.out.println("CRC生成多项式对应的二进制比特串:"+genXString);
+		System.out.println();
+		CRC_CCITT CRC_Test=new CRC_CCITT();
+		String CRC_Code1=CRC_CCITT.getCRC16CCITT(infoString1, 0x1021, 0x0000);
+		System.out.println("计算得到的CRC校验码:"+CRC_Code1);
+		
+		System.out.println("带校验和的发送帧"+infoString1+CRC_Code1);
+		System.out.println();
+//		String getCrcCode=CRC_CCITT.getCRC16CCITT(infoString1+CRC_Code, 0x1021, 0x0000);
+		String CRC_Code2=CRC_CCITT.getCRC16CCITT(infoString2, 0x1021, 0x0000);
+		System.out.println("接收到的数据信息二进制比特串:"+infoString2);
+		System.out.println("计算得到的CRC校验码"+CRC_Code2);
+		String CheckString=infoString1+CRC_Code1;
+		String Remainder=CRC_CCITT.getCRC16CCITT(CheckString, 0x1021, 0x0000);
+		System.out.print("接受码校验余数为："+Remainder);
+		if(Integer.valueOf(Remainder)==0) System.out.print("(无错)");
+		else System.out.print("(错误)");
 	}
-
-	public static byte[] parseHexStr2Byte(String hexStr) {
-		if (hexStr.length() < 1)
-			return null;
-		byte[] result = new byte[hexStr.length() / 2];
-		for (int i = 0; i < hexStr.length() / 2; i++) {
-			int high = Integer.parseInt(hexStr.substring(i * 2, i * 2 + 1), 16);
-			int low = Integer.parseInt(hexStr.substring(i * 2 + 1, i * 2 + 2), 16);
-			result[i] = (byte) (high * 16 + low);
-		}
-		return result;
-	}
-	public static String byteArrToBinStr(byte[] b) {
-		StringBuffer result = new StringBuffer();
-		for (int i = 0; i < b.length; i++) {
-			String tmp = Long.toString(b[i] & 0xff, 2);
-
-			while (tmp.length() < 8) {
-				tmp = "0" + tmp;
-			}
-			result.append(tmp);
-		}
-		return result.toString();
-	}
-
 }
