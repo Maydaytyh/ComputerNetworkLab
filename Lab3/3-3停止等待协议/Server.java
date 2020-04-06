@@ -39,9 +39,9 @@ public class Server extends Thread{
 		FileInputStream ReadStream = null;
 		try {
 			ReadStream = new FileInputStream(this.SendFile);
-			System.out.println("Server:服务器读取文件成功!");
+			System.out.println("Server:服务器读取文件成功!\n");
 		} catch (FileNotFoundException e) {
-			System.out.println("Server: 读取文件出错！");
+			System.out.println("Server: 读取文件出错！\n");
 			System.out.println("Server: FileNotFoundException :" + e.toString());
 		}
 		 
@@ -110,7 +110,7 @@ public class Server extends Thread{
 //					System.out.println("Server:"+SendInfo);
 //					dos.close();
 					System.out.println("Server:正在发送帧编号为" + InfoFrame.GetId());
-					System.out.println("Server:next_frame_to_send为" + NextFrameToSend);
+					System.out.println("Server:next_frame_to_send为" + NextFrameToSend+"\n");
 				}
 				else {
 					try {
@@ -123,12 +123,12 @@ public class Server extends Thread{
 				in = new BufferedReader(new InputStreamReader(Client.getInputStream()));
 				String FeedBack = "";
 				FeedBack = in.readLine();
-				System.out.println("Server:反馈为"+FeedBack);
+//				System.out.println("Server:反馈为"+FeedBack);
 				// 根据反馈不同，输出结果
 				if (FeedBack.equals("ERROR")) {
 					System.out.println("Server:接收到ACK，ACK序号为:"+AckId);
 					AckId++;
-					System.out.println("Server:ACK 传输数据错误，重新发送……");
+					System.out.println("Server:ACK内容为： 传输数据错误，重新发送……\n");
 					KeepId = true;
 					dos.flush();
 					Client.close();
@@ -138,7 +138,7 @@ public class Server extends Thread{
 				} else if (FeedBack.equals("LOST")) {
 					System.out.println("Server:接收到ACK，ACK序号为:"+AckId);
 					AckId++;
-					System.out.println("Server: ACK 传输数据丢失，重新发送……");
+					System.out.println("Server: ACK内容为： 传输数据丢失，重新发送……\n");
 					KeepId = true;
 					dos.flush();
 					Client.close();
@@ -148,7 +148,7 @@ public class Server extends Thread{
 				} else {
 					System.out.println("Server:接收到ACK，ACK序号为:"+AckId);
 					AckId++;
-					System.out.println("Server:ACK 正确接收确认帧，编号为" + InfoFrame.GetId());
+					System.out.println("Server:ACK 内容为：传输数据正确接收，发送下一帧数据\n");
 					NextFrameToSend++;
 				}
 				dos.flush();
@@ -162,7 +162,7 @@ public class Server extends Thread{
 				System.out.println("Server: IOException :" + e1.toString());
 			}
 		//结束
-		System.out.println("Server:传输完毕！");
+		System.out.println("Server:传输完毕！\n");
 		InfoFrame = new Frame(NextFrameToSend, FilterError, FilterLost);
 		InfoFrame.SetState("END");
 		try {
@@ -182,7 +182,7 @@ public class Server extends Thread{
 			// 在中间插入t以切开信息和CRC
 			String HexCRC=new BigInteger(CRCValue,2).toString(16);
 			String SendInfo=HexString+"t"+HexCRC+"\n";
-			System.out.println("Server:结束啦！ ");
+//			System.out.println("Server:结束啦！ ");
 			
 			//开始发送结束信息
 			Client = new Socket();
@@ -195,7 +195,7 @@ public class Server extends Thread{
 			in = new BufferedReader(new InputStreamReader(Client.getInputStream()));
 			String FeedBack = "";
 			FeedBack = in.readLine();
-			System.out.println("Server:接受最终状态"+FeedBack);
+			System.out.println("Server:接受最终状态为"+FeedBack+"\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
