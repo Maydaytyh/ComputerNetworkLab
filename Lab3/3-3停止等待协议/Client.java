@@ -18,6 +18,7 @@ public class Client extends Thread {
     private byte[] FileInfo=new byte[0];
     private Frame InfoFrame;
     private boolean EndOfFile = false;
+    private int AckId=0;
     private String FileName = "test.txt";
     Socket UsedSocket;
     // ObjectInputStream in;
@@ -75,7 +76,8 @@ public class Client extends Thread {
                 byteArrayInputStream = new ByteArrayInputStream(ByteInfo);
                 objectInputStream = new ObjectInputStream(byteArrayInputStream);
                 InfoFrame=(Frame) objectInputStream.readObject();
-                System.out.println("Client:接收到帧序号为" + InfoFrame.GetId());
+                System.out.println("Client:期待接收到的帧序号为:"+ExpectedFrameId);
+                System.out.println("Client:接收到帧序号为:" + InfoFrame.GetId());
                 // 判断获取的帧的状态
                 String FrameState = InfoFrame.GetState();
                 // 结束状态
@@ -109,12 +111,13 @@ public class Client extends Thread {
                         System.arraycopy(FileInfo,0,Data,0,FileInfo.length);
                         System.arraycopy(Buffer, 0, Data, FileInfo.length, InfoFrame.Length);
                         FileInfo = Data;
+                        ExpectedFrameId++;
                         System.out.println("Client:数据无错！接收到的帧序号为：" + InfoFrame.GetId());
                         // ACK状态为OK
                         DataOutputStream dos1 = new DataOutputStream(UsedSocket.getOutputStream());
                         dos1.writeBytes("OK" + '\n');
                         dos1.close();
-                        
+                        System.out.println("Client:发送确认帧成功！"+" 确认帧序号为:"+AckId);
                     }
                     // 数据错误
                     else {
@@ -122,6 +125,7 @@ public class Client extends Thread {
                         dos1.writeBytes("ERROR" + '\n');
                         dos1.close();
                         System.out.println("Clinet:数据出错！");
+                        System.out.println("Client:发送确认帧成功！"+" 确认帧序号为:"+AckId);
                     }
                 }
                 in.close();
@@ -136,6 +140,7 @@ public class Client extends Thread {
                     DataOutputStream dos = new DataOutputStream(UsedSocket.getOutputStream());
                     dos.writeBytes("LOST" + '\n');
                     dos.close();
+                    System.out.println("Client:发送确认帧成功！"+" 确认帧序号为:"+AckId);
                 } catch (java.io.IOException ee) {
                     ee.printStackTrace();
                 }

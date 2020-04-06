@@ -15,10 +15,12 @@ public class Server extends Thread{
 	private int FilterError;
 	private int FilterLost;
 	private int NumOfInfos = 0;
-	private byte[] Buffer;
+	private byte[] Buffer=new byte[4];
 	private File SendFile;
 	private boolean EndOfFile = false;
 	private boolean KeepId = false;
+	private int len;
+	private int AckId=0;
 	// 读取和写入相关
 	// ObjectInputStream in;
 	BufferedReader in;
@@ -42,13 +44,14 @@ public class Server extends Thread{
 			System.out.println("Server: 读取文件出错！");
 			System.out.println("Server: FileNotFoundException :" + e.toString());
 		}
+		 
 		// 读取数据到缓冲区
 		try {
-			Buffer=new byte[4];
+			
 			while ((EndOfFile == false)) 
 			{
 				if (KeepId == false) {
-					int len=ReadStream.read(Buffer);
+					len=ReadStream.read(Buffer);
 					if (len== -1) {
 						EndOfFile = true;
 						continue;
@@ -61,6 +64,7 @@ public class Server extends Thread{
 				{
 					KeepId = false;
 					InfoFrame = new Frame(NextFrameToSend, FilterError, FilterLost);
+					InfoFrame.SetMsg(Buffer, len);
 					InfoFrame.SetState("OK");
 				}
 					
@@ -116,35 +120,34 @@ public class Server extends Thread{
 						e.printStackTrace();
 					}
 				}
-				// 从Client接受反馈信息
-//				Client.connect(ReceiveAdd, 100000);
 				in = new BufferedReader(new InputStreamReader(Client.getInputStream()));
 				String FeedBack = "";
 				FeedBack = in.readLine();
-//				in.close();
 				System.out.println("Server:反馈为"+FeedBack);
 				// 根据反馈不同，输出结果
 				if (FeedBack.equals("ERROR")) {
+					System.out.println("Server:接收到ACK，ACK序号为:"+AckId);
+					AckId++;
 					System.out.println("Server:ACK 传输数据错误，重新发送……");
 					KeepId = true;
 					dos.flush();
-//					dos.close();
-//					dos=null;
 					Client.close();
 					Client=null;
 					InfoFrame=null;
 					continue;
 				} else if (FeedBack.equals("LOST")) {
+					System.out.println("Server:接收到ACK，ACK序号为:"+AckId);
+					AckId++;
 					System.out.println("Server: ACK 传输数据丢失，重新发送……");
 					KeepId = true;
 					dos.flush();
-//					dos.close();
-//					dos=null;
 					Client.close();
 					Client=null;
 					InfoFrame=null;
 					continue;
 				} else {
+					System.out.println("Server:接收到ACK，ACK序号为:"+AckId);
+					AckId++;
 					System.out.println("Server:ACK 正确接收确认帧，编号为" + InfoFrame.GetId());
 					NextFrameToSend++;
 				}
@@ -162,8 +165,6 @@ public class Server extends Thread{
 		System.out.println("Server:传输完毕！");
 		InfoFrame = new Frame(NextFrameToSend, FilterError, FilterLost);
 		InfoFrame.SetState("END");
-//		Client = new Socket();
-//		InetSocketAddress ReceiveAdd = new InetSocketAddress(this.IpAddress, this.UDPPort);
 		try {
 			//转变格式
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -195,7 +196,6 @@ public class Server extends Thread{
 			String FeedBack = "";
 			FeedBack = in.readLine();
 			System.out.println("Server:接受最终状态"+FeedBack);
-			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
